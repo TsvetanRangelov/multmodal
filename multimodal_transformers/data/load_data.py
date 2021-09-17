@@ -312,6 +312,7 @@ def load_train_val_test_helper(train_df,
     return train_dataset, val_dataset, test_dataset
 
 
+
 def load_data(data_df,
               text_cols,
               tokenizer,
@@ -326,6 +327,8 @@ def load_data(data_df,
               replace_empty_text=None,
               max_token_length=None,
               debug=False,
+              cat_feat_names="Auto",
+              get_feat_names=True
               ):
     """Function to load a single dataset given a pandas DataFrame
 
@@ -378,10 +381,12 @@ def load_data(data_df,
     categorical_cols_func = convert_to_func(categorical_cols)
     numerical_cols_func = convert_to_func(numerical_cols)
 
-    categorical_feats, numerical_feats = load_cat_and_num_feats(data_df,
-                                                                categorical_cols_func,
-                                                                numerical_cols_func,
-                                                                categorical_encode_type)
+    categorical_feats, numerical_feats, cat_feat_names = load_cat_and_num_feats(data_df,
+                                                                                categorical_cols_func,
+                                                                                numerical_cols_func,
+                                                                                categorical_encode_type,
+                                                                                cat_feat_names="Auto",
+                                                                                get_feat_names=get_feat_names)
     numerical_feats = normalize_numerical_feats(numerical_feats, numerical_transformer)
     agg_func = partial(agg_text_columns_func, empty_text_values, replace_empty_text)
     texts_cols = get_matching_cols(data_df, text_cols_func)
@@ -397,4 +402,4 @@ def load_data(data_df,
     labels = data_df[label_col].values
 
     return TorchTabularTextDataset(hf_model_text_input, categorical_feats,
-                                   numerical_feats, labels, data_df, label_list)
+                                   numerical_feats, labels, data_df, label_list, cat_feat_names=cat_feat_names)

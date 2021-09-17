@@ -12,7 +12,7 @@ class CategoricalFeatures:
     From https://github.com/abhishekkrthakur/mlframework/blob/master/src/categorical.py
     """
 
-    def __init__(self, df, categorical_cols, encoding_type, handle_na=False):
+    def __init__(self, df, categorical_cols, encoding_type, handle_na=False, cat_feat_names="Auto"):
         """
         Args:
             df (:obj: `pd.DataFrame`): DataFrame which contains categorical features
@@ -24,6 +24,7 @@ class CategoricalFeatures:
                 categorical value
         """
         self.df = df
+        self.cat_feat_names = cat_feat_names
         self.cat_feats = categorical_cols
         self.enc_type = encoding_type
         self.handle_na = handle_na
@@ -64,7 +65,10 @@ class CategoricalFeatures:
         return np.concatenate(vals, axis=1)
 
     def _one_hot(self):
-        ohe = preprocessing.OneHotEncoder(sparse=False)
+        if self.cat_feat_names == "Auto":
+            ohe = preprocessing.OneHotEncoder(sparse=False)
+        else:
+            ohe = preprocessing.OneHotEncoder(categories=self.cat_feat_names, sparse=False)
         ohe.fit(self.df[self.cat_feats].values)
         self.feat_names = list(ohe.get_feature_names(self.cat_feats))
         return ohe.transform(self.df[self.cat_feats].values)
@@ -137,20 +141,29 @@ def agg_text_columns_func(empty_row_values, replace_text, texts):
     return processed_texts
 
 
-def load_cat_and_num_feats(df, cat_bool_func, num_bool_func, enocde_type=None):
-    cat_feats = load_cat_feats(df, cat_bool_func, enocde_type)
+def load_cat_and_num_feats(df, cat_bool_func, num_bool_func, enocde_type=None, cat_feat_names="Auto", get_feat_names=False):
     num_feats = load_num_feats(df, num_bool_func)
-    return cat_feats, num_feats
+    if get_feat_names:
+        cat_feats, cat_feat_names = load_cat_feats(df, cat_bool_func, enocde_type, cat_feat_names, get_feat_names=get_feat_names)
+        return cat_feats, num_feats, cat_feat_names
+    else:
+        cat_feats = load_cat_feats(df, cat_bool_func, enocde_type, cat_feat_names, get_feat_names=get_feat_names)
+        return cat_feats, num_feats
 
 
-def load_cat_feats(df, cat_bool_func, encode_type=None):
+
+def load_cat_feats(df, cat_bool_func, encode_type=None, cat_feat_names="Auto", get_feat_names=False):
     """load categorical features from DataFrame and do encoding if specified"""
     cat_cols = get_matching_cols(df, cat_bool_func)
     logger.info(f'{len(cat_cols)} categorical columns')
     if len(cat_cols) == 0:
         return None
-    cat_feat_processor = CategoricalFeatures(df, cat_cols, encode_type)
-    return cat_feat_processor.fit_transform()
+    cat_feat_processor = CategoricalFeatures(df, cat_cols, encode_type, cat_feat_names=cat_feat_names)
+    cat_feats = cat_feat_processor.fit_transform()
+    if get_feat_names:
+        return cat_feats, cat_feat_processor.feat_names
+    else:
+        return cat_feats
 
 
 def load_num_feats(df, num_bool_func):

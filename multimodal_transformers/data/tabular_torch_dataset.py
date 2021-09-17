@@ -33,13 +33,15 @@ class TorchTabularTextDataset(TorchDataset):
                  labels=None,
                  df=None,
                  label_list=None,
-                 class_weights=None
+                 class_weights=None,
+                 cat_feat_names=[]
                  ):
         self.df = df
         self.encodings = encodings
         self.cat_feats = categorical_feats
         self.numerical_feats = numerical_feats
         self.labels = labels
+        self.cat_feat_names = cat_feat_names
         self.class_weights = class_weights
         self.label_list = label_list if label_list is not None else [i for i in range(len(np.unique(labels)))]
 
