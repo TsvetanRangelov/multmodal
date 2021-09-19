@@ -42,7 +42,7 @@ class TabularConfig:
         self.gating_beta = gating_beta
         self.numerical_feat_dim = numerical_feat_dim
         self.cat_feat_dim = cat_feat_dim
-        self.cat_feat_names = "Auto"
+        self.cat_feat_names = cat_feat_names
         self.num_labels = num_labels
 
     def to_dict(self):
